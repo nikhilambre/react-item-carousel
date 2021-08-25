@@ -1,0 +1,78 @@
+.nik-carousel-wrap {
+    position: relative;
+}
+
+.nik-carousel-wrap .hsb-arrow:hover {
+    opacity: 1;
+}
+.nik-carousel-wrap:after {
+    position: absolute;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+    content: "";
+    pointer-events: none;
+}
+.nik-carousel-wrap.next-end.prev-end:after {
+    background: linear-gradient(
+        to right,
+        white 0%,
+        transparent 5%,
+        transparent 50%,
+        transparent 95%,
+        white 100%
+    );
+}
+.nik-carousel-wrap.prev-end:after {
+    background: linear-gradient(
+        to right,
+        white 0%,
+        transparent 5%,
+        transparent 85%,
+        transparent 95%,
+        transparent 100%
+    );
+}
+.nik-carousel-wrap.next-end:after {
+    background: linear-gradient(
+        to right,
+        transparent 0%,
+        transparent 25%,
+        transparent 85%,
+        transparent 95%,
+        white 100%
+    );
+}
+
+.nik-carousel-wrap:hover .hsb-arrow {
+    opacity: 0.5;
+}
+
+
+.nik-carousel {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    will-change: transform;
+    user-select: none;
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.nik-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.nik-carousel.active {
+    cursor: grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.nik-carousel-item > div {
+    min-height: 100px;
+    border-radius: 0.3rem;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 7%), 0 0 4px 0 rgb(0 0 0 / 16%);
+}
