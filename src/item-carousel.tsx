@@ -1,25 +1,34 @@
 import React, {useRef, useState, useEffect} from "react";
-import {
-    StyledCarouselWrap,
-    StyledCarousel,
-    StyledCarouselItem,
-    StyledArrowHead
-} from "./item-carousel.styles";
+import {StyledCarouselWrap, StyledCarousel, StyledCarouselItem} from "./item-carousel.styles";
+import ArrowHead from "./arrow-head";
 
 type props = {
     itemWidth: number;
-    spaceBetween?: number;
+    spaceBetween?: number; // value in px
     isShowArrows?: boolean;
+    isDraggable?: boolean;
     slideToIndex?: number;
     slidesToScroll?: number;
     isRTL?: boolean;
     children: JSX.Element[];
 };
 
+/**
+ * @param itemWidth - width of each item in pixels
+ * @param spaceBetween - space between to items in pixels
+ * @param isShowArrows - show or hide arrows conditionaly with props
+ * @param isDraggable - is Drag to slide is enabled
+ * @param slideToIndex - slide to item index on load
+ * @param slidesToScroll - slides to scroll on each arrow click
+ * @param isRTL - is show items in RTL fashion for arabic
+ *
+ * @returns JSX Element
+ */
 const ItemCarousel = ({
     itemWidth,
     spaceBetween = 8,
     isShowArrows = true,
+    isDraggable = true,
     slideToIndex = 0,
     slidesToScroll = 1,
     isRTL = false,
@@ -47,9 +56,20 @@ const ItemCarousel = ({
         } else {
             sliderRef.current.style.justifyContent = "unset";
             sliderRef.current.scrollLeft = slideToIndex * itemWidth;
-        }
-        if (sliderRef.current.scrollLeft === 0) {
-            setShowArrowPrev(false);
+
+            //  If slide to index is 0 then hide prev arrow
+            if (slideToIndex === 0) {
+                setShowArrowPrev(false);
+            }
+
+            //  If slide length + container width is more then we have reached end of carousel
+            if (Math.abs(slideToIndex * itemWidth) + sliderRef.current.offsetWidth >= sliderWidth) {
+                if (isRTL) {
+                    setShowArrowPrev(false);
+                } else {
+                    setShowArrowNext(false);
+                }
+            }
         }
     }, [sliderWidth, slideToIndex, itemWidth]);
 
@@ -59,15 +79,16 @@ const ItemCarousel = ({
         updateArrows();
     };
 
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e: React.MouseEvent<HTMLSpanElement, MouseEvent> | React.Touch) => {
         mouseDownRef.current = true;
         sliderRef.current.classList.add("active");
         mouseStartXRef.current = e.pageX - sliderRef.current.offsetLeft;
         mouseScrollLeftRef.current = sliderRef.current.scrollLeft;
     };
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: React.MouseEvent<HTMLSpanElement, MouseEvent> | React.Touch) => {
         if (!mouseDownRef.current) return;
+        if (!isDraggable) return;
 
         const x = e.pageX - sliderRef.current.offsetLeft;
         const walk = (x - mouseStartXRef.current) * 2;
@@ -101,7 +122,7 @@ const ItemCarousel = ({
         else setShowArrowNext(true);
     };
 
-    const updatePosition = (isPrev) => {
+    const updatePosition = (isPrev: boolean) => {
         if ((isRTL && isPrev) || (!isRTL && !isPrev)) {
             return sliderRef.current.scrollLeft + itemWidth * slidesToScroll;
         }
@@ -117,13 +138,21 @@ const ItemCarousel = ({
             <StyledCarousel
                 ref={sliderRef}
                 className={`nik-carousel`}
-                onMouseMove={(e) => handleMouseMove(e)}
+                onMouseMove={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) =>
+                    handleMouseMove(e)
+                }
                 onMouseUp={() => handleMouseLeave()}
-                onMouseDown={(e) => handleMouseDown(e)}
+                onMouseDown={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) =>
+                    handleMouseDown(e)
+                }
                 onMouseLeave={() => handleMouseLeave()}
-                onTouchStart={(e) => handleMouseDown(e.changedTouches[0])}
+                onTouchStart={(e: React.TouchEvent<HTMLSpanElement>) =>
+                    handleMouseDown(e.changedTouches[0])
+                }
                 onTouchEnd={() => handleMouseLeave()}
-                onTouchMove={(e) => handleMouseMove(e.changedTouches[0])}
+                onTouchMove={(e: React.TouchEvent<HTMLSpanElement>) =>
+                    handleMouseMove(e.changedTouches[0])
+                }
             >
                 {children.map((item, index) => (
                     <StyledCarouselItem
@@ -158,44 +187,3 @@ const ItemCarousel = ({
 };
 
 export default ItemCarousel;
-
-type arrowProps = {
-    direction: string;
-    onArrowClick?: (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
-    classes?: string;
-    isRTL?: boolean;
-};
-
-const ArrowHead = ({direction, onArrowClick, classes, isRTL}: arrowProps) => {
-    let arrow = <span></span>;
-    if (direction === "next") {
-        arrow = (
-            <svg viewBox="0 0 32 32" className="nik-icon-svg svg-next" aria-hidden="true">
-                <path
-                    className="path-next"
-                    d="M18.629 15.997l-7.083-7.081L13.462 7l8.997 8.997L13.457 25l-1.916-1.916z"
-                />
-            </svg>
-        );
-    }
-    if (direction === "prev") {
-        arrow = (
-            <svg viewBox="0 0 32 32" className="nik-icon-svg svg-prev" aria-hidden="true">
-                <path
-                    className="path-prev"
-                    d="M14.19 16.005l7.869 7.868-2.129 2.129-9.996-9.997L19.937 6.002l2.127 2.129z"
-                />
-            </svg>
-        );
-    }
-    return (
-        <StyledArrowHead
-            className={`nik-arrow nik-arrow-` + direction + " " + classes}
-            role="button"
-            onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => onArrowClick(e)}
-            isRTL={isRTL}
-        >
-            {arrow}
-        </StyledArrowHead>
-    );
-};
